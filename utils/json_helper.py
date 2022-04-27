@@ -40,7 +40,7 @@ class JsonHelper:
         return self.__images[idx], self.__annotations[idx]
 
     def get_image_list(self) -> list:
-        return [(img["id"], img["file_name"]) for img in self.__images]
+        return [{"id": img["id"], "file_name": img["file_name"]} for img in self.__images]
             
 
 if __name__ == '__main__':

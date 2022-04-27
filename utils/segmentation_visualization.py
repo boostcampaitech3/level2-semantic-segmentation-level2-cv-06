@@ -7,19 +7,20 @@ from json_helper import JsonHelper
 
 
 ssh = dict()
-img_num = 2
+img_idx = 0
+img_list = []
 
 
 def press(event):
-    global img_num
+    global img_idx, img_list
     print(f"pressed key: {event.key}")
     sys.stdout.flush()
     if event.key == 'x':
         plt.close()
     elif event.key == 'n':
-        img_num += 1
+        img_idx += 1
         target_path = os.path.join(ssh['identity_dir_path'], 'temp.jpg') if args.target_dir_path == "" else os.path.join(args.target_dir_path, 'temp.jpg')
-        download_file(ssh, f"/opt/ml/input/data/batch_01_vt/000{img_num}.jpg", target_path)
+        download_file(ssh, f"/opt/ml/input/data/{img_list[img_idx]['file_name']}", target_path)
         img = mimg.imread(target_path)
         plt.imshow(img)
         plt.axis("off")
@@ -33,7 +34,7 @@ def download_file(ssh, src_path, target_path):
 
 
 def main(args):
-    global img_num, ssh
+    global img_idx, ssh, img_list
 
     # arguments
     ssh = dict(
@@ -44,9 +45,8 @@ def main(args):
         annotations_file_path=args.annotations_file_path
     )
     
-    # download temporaty image and annotation files
+    # set pathes for temporaty image and annotation files
     temp_image_path = os.path.join(ssh['identity_dir_path'], 'temp.jpg') if args.target_dir_path == "" else os.path.join(args.target_dir_path, 'temp.jpg')
-    download_file(ssh, f"/opt/ml/input/data/batch_01_vt/000{img_num}.jpg", temp_image_path)
     temp_json_path = os.path.join(ssh['identity_dir_path'], 'temp.json') if args.target_dir_path == "" else os.path.join(args.target_dir_path, 'temp.json')
     # if temporary json file already exists, skip download process
     if os.path.isfile(temp_json_path):
@@ -57,8 +57,11 @@ def main(args):
     # construct json helper
     json_helper = JsonHelper(temp_json_path)
     img_list = json_helper.get_image_list()
-    print(f"img_list: {img_list}")
 
+    # download temporary image file
+    download_file(ssh, f"/opt/ml/input/data/{img_list[img_idx]['file_name']}", temp_image_path)
+
+    # set pyplot figure key press event
     fig = plt.figure()
     fig.canvas.mpl_connect("key_press_event", press)
 
