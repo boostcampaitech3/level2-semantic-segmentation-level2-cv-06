@@ -3,6 +3,7 @@ import sys
 import argparse
 import matplotlib.pyplot as plt
 import matplotlib.image as mimg
+from json_helper import JsonHelper
 
 
 ssh = dict()
@@ -42,18 +43,27 @@ def main(args):
         identity_dir_path=args.identity_dir_path,
         annotations_file_path=args.annotations_file_path
     )
-    target_path = os.path.join(ssh['identity_dir_path'], 'temp.jpg') if args.target_dir_path == "" else os.path.join(args.target_dir_path, 'temp.jpg')
     
-
     # download temporaty image and annotation files
-    download_file(ssh, f"/opt/ml/input/data/batch_01_vt/000{img_num}.jpg", target_path)
-    download_file(ssh, f"{ssh['annotations_file_path']}", os.path.join(ssh['identity_dir_path'], 'temp.json'))
+    temp_image_path = os.path.join(ssh['identity_dir_path'], 'temp.jpg') if args.target_dir_path == "" else os.path.join(args.target_dir_path, 'temp.jpg')
+    download_file(ssh, f"/opt/ml/input/data/batch_01_vt/000{img_num}.jpg", temp_image_path)
+    temp_json_path = os.path.join(ssh['identity_dir_path'], 'temp.json') if args.target_dir_path == "" else os.path.join(args.target_dir_path, 'temp.json')
+    # if temporary json file already exists, skip download process
+    if os.path.isfile(temp_json_path):
+        print("temporary json file already exsits. skip the download process.")
+    else:
+        download_file(ssh, f"{ssh['annotations_file_path']}", temp_json_path)
+
+    # construct json helper
+    json_helper = JsonHelper(temp_json_path)
+    img_list = json_helper.get_image_list()
+    print(f"img_list: {img_list}")
 
     fig = plt.figure()
     fig.canvas.mpl_connect("key_press_event", press)
 
     # show image on new window
-    img = mimg.imread(target_path)
+    img = mimg.imread(temp_image_path)
     plt.imshow(img)
     plt.axis("off")
     plt.show(block=True)
