@@ -21,7 +21,7 @@ def press(event):
     if event.key == 'x':
         plt.close()
     elif event.key == 'n':
-        plt.clf()
+        plt.clf()  # TODO should check what's difference between plt.cla() and plt.clf()
         img_idx += 1
         target_path = os.path.join(ssh['identity_dir_path'], 'temp.jpg') if args.target_dir_path == "" else os.path.join(args.target_dir_path, 'temp.jpg')
         download_file(ssh, os.path.join(ssh["source_dir_path"], img_list[img_idx]['file_name']), target_path)
@@ -40,6 +40,24 @@ def press(event):
         plt.imshow(img)
         plt.axis("off")
         categories_idx = (categories_idx + 1) % len(categories)
+        if categories_idx == 0:
+            anns = vz_helper.get_annotations(img_list[img_idx]["id"])
+        else:
+            cat_id, cat_name = categories[categories_idx][0], categories[categories_idx][1]
+            anns = vz_helper.get_annotations(img_list[img_idx]["id"], cat_id)
+        vz_helper.showAnns(anns)
+        plt.draw()
+        print(f"category_name: {cat_name}" if categories_idx > 0 else "all categories")
+    elif event.key.startswith("ctrl"):
+        cmd = event.key.split("+")[1]
+        if not cmd.isnumeric():
+            return
+        plt.clf()
+        target_path = os.path.join(ssh['identity_dir_path'], 'temp.jpg') if args.target_dir_path == "" else os.path.join(args.target_dir_path, 'temp.jpg')
+        img = mimg.imread(target_path)
+        plt.imshow(img)
+        plt.axis("off")
+        categories_idx = int(cmd)
         if categories_idx == 0:
             anns = vz_helper.get_annotations(img_list[img_idx]["id"])
         else:
@@ -86,7 +104,7 @@ def main(args):
     # download temporary image file
     download_file(ssh, os.path.join(ssh["source_dir_path"], img_list[img_idx]['file_name']), temp_image_path)
 
-    # set pyplot figure key press event
+    # set pyplot figure key release event
     fig = plt.figure()
     fig.canvas.mpl_connect("key_press_event", press)
 
