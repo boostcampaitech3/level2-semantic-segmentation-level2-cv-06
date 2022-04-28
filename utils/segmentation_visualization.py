@@ -3,7 +3,7 @@ import sys
 import argparse
 import matplotlib.pyplot as plt
 import matplotlib.image as mimg
-from json_helper import JsonHelper
+from visualization_helper import VzHelper
 
 
 ssh = dict()
@@ -57,8 +57,8 @@ def main(args):
         download_file(ssh, f"{ssh['annotations_file_path']}", temp_json_path)
 
     # construct json helper
-    json_helper = JsonHelper(temp_json_path)
-    img_list = json_helper.get_image_list()
+    vz_helper = VzHelper(temp_json_path)
+    img_list = vz_helper.get_image_list()
 
     # download temporary image file
     download_file(ssh, os.path.join(ssh["source_dir_path"], img_list[img_idx]['file_name']), temp_image_path)
@@ -71,8 +71,8 @@ def main(args):
     img = mimg.imread(temp_image_path)
     plt.imshow(img)
     # draw polygons
-    anns = json_helper.get_annotations(img_list[0]["id"])
-    json_helper.showAnns(anns)
+    anns = vz_helper.get_annotations(img_list[0]["id"])
+    vz_helper.showAnns(anns)
 
     plt.axis("off")
     plt.show(block=True)

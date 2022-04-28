@@ -2,7 +2,7 @@ import json
 from collections import defaultdict
 
 
-class JsonHelper:
+class VzHelper:
     def __init__(self, json_path:str, classes: list=None) -> None:
         print("initializing json helper")
         self.__json_path = json_path
