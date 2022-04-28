@@ -1,12 +1,12 @@
 import json
 from collections import defaultdict
+from copy import deepcopy
 
 
 class VzHelper:
-    def __init__(self, json_path:str, classes: list=None) -> None:
+    def __init__(self, json_path:str) -> None:
         print("initializing json helper")
         self.__json_path = json_path
-        self.__classes = classes
 
         print(f"loading json file, path: {self.__json_path}")
         with open(json_path, "r") as file:
@@ -14,12 +14,9 @@ class VzHelper:
         self.__columns = self.__data.keys()
         self.__images = self.__data["images"]
         self.__annotations = self.__data["annotations"]
-        if not self.__classes:
-            self.__classes = []
-            for category in self.__data["categories"]:
-                self.__classes.append((category["id"], category["name"]))
-            self.__classes.sort(key=lambda x:x[0])
-            self.__classes = [class_name for class_id, class_name in self.__classes]
+
+        print("setting categories information")
+        self.__categories = sorted([(cat["id"], cat["name"]) for cat in self.__data["categories"]], key=lambda x:x[0])
 
         print("mapping images information to annotations")
         self.__image_annotations = defaultdict(list)
@@ -78,12 +75,17 @@ class VzHelper:
         else:
             anno_ids = set(self.__image_annotations_by_categories[img_id][category_id])
         return [anno for anno in self.__annotations if anno["id"] in anno_ids]
+
+    def get_categories(self) -> list:
+        """
+        Return
+        ---
+        list of categories: [(cat_id1, cat_name1), (cat_id2, cat_name2), ...]
+        """
+        return self.__categories
             
         
             
 if __name__ == '__main__':
     # test code
-    classes = ["Gene"]
-    jh = JsonHelper("C:/Users/alsrl/.ssh/temp.json")
-    print(f"len(jh): {len(jh)}")
-    print(jh.__image_annotations[0][8])
+    pass

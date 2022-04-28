@@ -9,24 +9,46 @@ from visualization_helper import VzHelper
 ssh = dict()
 img_idx = 0
 img_list = []
+categories = [None]
+categories_idx = 0
+vz_helper = None
 
 
 def press(event):
-    global ssh, img_idx, img_list
+    global ssh, img_idx, img_list, categories, categories_idx
     print(f"pressed key: {event.key}")
     sys.stdout.flush()  # TODO should search what this is
     if event.key == 'x':
         plt.close()
     elif event.key == 'n':
+        plt.clf()
         img_idx += 1
         target_path = os.path.join(ssh['identity_dir_path'], 'temp.jpg') if args.target_dir_path == "" else os.path.join(args.target_dir_path, 'temp.jpg')
         download_file(ssh, os.path.join(ssh["source_dir_path"], img_list[img_idx]['file_name']), target_path)
         img = mimg.imread(target_path)
         plt.imshow(img)
+        categories_idx = 0
+        anns = vz_helper.get_annotations(img_list[img_idx]["id"])
+        vz_helper.showAnns(anns)
         plt.axis("off")
         plt.draw()
-    elif event.key == 'tab': 
-        pass
+        print("all categories")
+    elif event.key == 'tab':
+        plt.clf()
+        target_path = os.path.join(ssh['identity_dir_path'], 'temp.jpg') if args.target_dir_path == "" else os.path.join(args.target_dir_path, 'temp.jpg')
+        img = mimg.imread(target_path)
+        plt.imshow(img)
+        plt.axis("off")
+        categories_idx = (categories_idx + 1) % len(categories)
+        if categories_idx == 0:
+            anns = vz_helper.get_annotations(img_list[img_idx]["id"])
+        else:
+            cat_id, cat_name = categories[categories_idx][0], categories[categories_idx][1]
+            anns = vz_helper.get_annotations(img_list[img_idx]["id"], cat_id)
+        vz_helper.showAnns(anns)
+        plt.draw()
+        print(f"category_name: {cat_name}" if categories_idx > 0 else "all categories")
+        
 
 
 def download_file(ssh, src_path, target_path):
@@ -34,7 +56,7 @@ def download_file(ssh, src_path, target_path):
 
 
 def main(args):
-    global img_idx, ssh, img_list
+    global img_idx, ssh, img_list, categories, categories_idx, vz_helper
 
     # arguments
     ssh = dict(
@@ -59,6 +81,7 @@ def main(args):
     # construct json helper
     vz_helper = VzHelper(temp_json_path)
     img_list = vz_helper.get_image_list()
+    categories.extend(vz_helper.get_categories())
 
     # download temporary image file
     download_file(ssh, os.path.join(ssh["source_dir_path"], img_list[img_idx]['file_name']), temp_image_path)
