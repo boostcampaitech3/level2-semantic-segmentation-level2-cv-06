@@ -12,15 +12,15 @@ img_list = []
 
 
 def press(event):
-    global img_idx, img_list
+    global ssh, img_idx, img_list
     print(f"pressed key: {event.key}")
-    sys.stdout.flush()
+    sys.stdout.flush()  # TODO should search what this is
     if event.key == 'x':
         plt.close()
     elif event.key == 'n':
         img_idx += 1
         target_path = os.path.join(ssh['identity_dir_path'], 'temp.jpg') if args.target_dir_path == "" else os.path.join(args.target_dir_path, 'temp.jpg')
-        download_file(ssh, f"/opt/ml/input/data/{img_list[img_idx]['file_name']}", target_path)
+        download_file(ssh, os.path.join(ssh["source_dir_path"], img_list[img_idx]['file_name']), target_path)
         img = mimg.imread(target_path)
         plt.imshow(img)
         plt.axis("off")
@@ -42,16 +42,18 @@ def main(args):
         port_num=args.port,
         address=args.address,
         identity_dir_path=args.identity_dir_path,
+        source_dir_path=args.source_dir_path,
         annotations_file_path=args.annotations_file_path
     )
     
     # set pathes for temporaty image and annotation files
     temp_image_path = os.path.join(ssh['identity_dir_path'], 'temp.jpg') if args.target_dir_path == "" else os.path.join(args.target_dir_path, 'temp.jpg')
     temp_json_path = os.path.join(ssh['identity_dir_path'], 'temp.json') if args.target_dir_path == "" else os.path.join(args.target_dir_path, 'temp.json')
-    # if temporary json file already exists, skip download process
+    # if temporary json file already exists, skip the download process
     if os.path.isfile(temp_json_path):
-        print("temporary json file already exsits. skip the download process.")
+        print("temporary json file already exists. skip the download process.")
     else:
+        print("temporary json file doesn't exists on your directory. it will be downloaded soon.")
         download_file(ssh, f"{ssh['annotations_file_path']}", temp_json_path)
 
     # construct json helper
@@ -59,7 +61,7 @@ def main(args):
     img_list = json_helper.get_image_list()
 
     # download temporary image file
-    download_file(ssh, f"/opt/ml/input/data/{img_list[img_idx]['file_name']}", temp_image_path)
+    download_file(ssh, os.path.join(ssh["source_dir_path"], img_list[img_idx]['file_name']), temp_image_path)
 
     # set pyplot figure key press event
     fig = plt.figure()
@@ -68,9 +70,12 @@ def main(args):
     # show image on new window
     img = mimg.imread(temp_image_path)
     plt.imshow(img)
+    # draw polygons
+    anns = json_helper.get_annotations(img_list[0]["id"])
+    json_helper.showAnns(anns)
+
     plt.axis("off")
     plt.show(block=True)
-
 
     print("program finished")
 
@@ -81,10 +86,11 @@ if __name__ == '__main__':
     parser.add_argument("--username", "-U", help="user name of ssh server", default="root")
     parser.add_argument("--address", "-A", help="address of ssh server", required=True)
     parser.add_argument("--identity_dir_path", "-i", help="path of identity file to access ssh host", required=True)
+    parser.add_argument("--source_dir_path", "-s", help="path where image data is saved", required=True)
     parser.add_argument("--target_dir_path", "-t", help="path where temporary image will be saved", default="")
     parser.add_argument("--annotations_file_path", "-a", help="path of annotation file", required=True)
     args = parser.parse_args()
 
     main(args)
 
-# python segmentation_visualization.py -P 2226 -A 49.50.165.163 -i C:/Users/alsrl/.ssh -a /opt/ml/input/data/train.json
+# python segmentation_visualization.py -P 2226 -A 49.50.165.163 -i C:/Users/alsrl/.ssh -s /opt/ml/input/data/ -a /opt/ml/input/data/train.json
