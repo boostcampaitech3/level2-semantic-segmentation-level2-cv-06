@@ -11,30 +11,64 @@ img_idx = 0
 img_list = []
 categories = [None]
 categories_idx = 0
+annotation_idx = 0
 vz_helper = None
 
 
 def press(event):
-    global ssh, img_idx, img_list, categories, categories_idx
+    global ssh, img_idx, img_list, categories, categories_idx, annotation_idx
     print(f"pressed key: {event.key}")
     sys.stdout.flush()  # TODO should search what this is
-    if event.key == 'x':
+    if event.key == "x":
         plt.close()
-    elif event.key == 'n':
+    elif event.key == "right":
         plt.clf()  # TODO should check what's difference between plt.cla() and plt.clf()
         img_idx += 1
+        if img_idx == len(img_list):
+            img_idx = 0
         target_path = os.path.join(ssh['identity_dir_path'], 'temp.jpg') if args.target_dir_path == "" else os.path.join(args.target_dir_path, 'temp.jpg')
         download_file(ssh, os.path.join(ssh["source_dir_path"], img_list[img_idx]['file_name']), target_path)
         img = mimg.imread(target_path)
         plt.imshow(img)
         categories_idx = 0
+        annotation_idx = 0
         anns = vz_helper.get_annotations(img_list[img_idx]["id"])
         vz_helper.showAnns(anns)
         plt.axis("off")
         plt.draw()
         print("all categories")
-    elif event.key == 'tab':
-        plt.clf()
+    elif event.key == "left":
+        plt.clf()  # TODO should check what's difference between plt.cla() and plt.clf()
+        img_idx -= 1
+        if img_idx < 0:
+            img_idx = len(img_list) - 1
+        target_path = os.path.join(ssh['identity_dir_path'], 'temp.jpg') if args.target_dir_path == "" else os.path.join(args.target_dir_path, 'temp.jpg')
+        download_file(ssh, os.path.join(ssh["source_dir_path"], img_list[img_idx]['file_name']), target_path)
+        img = mimg.imread(target_path)
+        plt.imshow(img)
+        categories_idx = 0
+        annotation_idx = 0
+        anns = vz_helper.get_annotations(img_list[img_idx]["id"])
+        vz_helper.showAnns(anns)
+        plt.axis("off")
+        plt.draw()
+        print("all categories")
+    elif event.key == "up":
+        plt.cla()
+        target_path = os.path.join(ssh['identity_dir_path'], 'temp.jpg') if args.target_dir_path == "" else os.path.join(args.target_dir_path, 'temp.jpg')
+        img = mimg.imread(target_path)
+        plt.imshow(img)
+        cat_id, cat_name = categories[categories_idx][0], categories[categories_idx][1]
+        anns = vz_helper.get_annotation(img_list[img_idx]["id"], cat_id, annotation_idx)
+        annotation_idx += 1
+        vz_helper.showAnns(anns)
+        plt.axis("off")
+        plt.draw()
+        print(f"annotation_id: {anns[0]['id']}")
+    elif event.key == "down":
+        pass        
+    elif event.key == "tab":
+        plt.cla()
         target_path = os.path.join(ssh['identity_dir_path'], 'temp.jpg') if args.target_dir_path == "" else os.path.join(args.target_dir_path, 'temp.jpg')
         img = mimg.imread(target_path)
         plt.imshow(img)
@@ -47,12 +81,14 @@ def press(event):
             anns = vz_helper.get_annotations(img_list[img_idx]["id"], cat_id)
         vz_helper.showAnns(anns)
         plt.draw()
+        print(f"file_name :{img_list[img_idx]['file_name']}")
         print(f"category_name: {cat_name}" if categories_idx > 0 else "all categories")
+        annotation_idx = 0
     elif event.key.startswith("ctrl"):
         cmd = event.key.split("+")[1]
         if not cmd.isnumeric():
             return
-        plt.clf()
+        plt.cla()
         target_path = os.path.join(ssh['identity_dir_path'], 'temp.jpg') if args.target_dir_path == "" else os.path.join(args.target_dir_path, 'temp.jpg')
         img = mimg.imread(target_path)
         plt.imshow(img)
@@ -65,6 +101,7 @@ def press(event):
             anns = vz_helper.get_annotations(img_list[img_idx]["id"], cat_id)
         vz_helper.showAnns(anns)
         plt.draw()
+        print(f"file_name :{img_list[img_idx]['file_name']}")
         print(f"category_name: {cat_name}" if categories_idx > 0 else "all categories")
         
 
@@ -107,6 +144,11 @@ def main(args):
     # set pyplot figure key release event
     fig = plt.figure()
     fig.canvas.mpl_connect("key_press_event", press)
+
+    # add information text
+    print(f"file_name :{img_list[img_idx]['file_name']}")
+    # info_txt = f"file name: {img_list[img_idx]['file_name']}\ncategories: {categories}"
+    # fig.text(.05, .05, info_txt)
 
     # show image on new window
     img = mimg.imread(temp_image_path)

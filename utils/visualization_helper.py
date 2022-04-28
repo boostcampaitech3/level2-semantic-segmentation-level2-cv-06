@@ -76,6 +76,12 @@ class VzHelper:
             anno_ids = set(self.__image_annotations_by_categories[img_id][category_id])
         return [anno for anno in self.__annotations if anno["id"] in anno_ids]
 
+    def get_annotation(self, img_id: int, category_id: int, annotation_idx: int) -> list:
+        anno_ids = set(self.__image_annotations_by_categories[img_id][category_id])
+        annos = [anno for anno in self.__annotations if anno["id"] in anno_ids]
+        annotation_idx %= len(annos)
+        return [annos[annotation_idx]]
+
     def get_categories(self) -> list:
         """
         Return
