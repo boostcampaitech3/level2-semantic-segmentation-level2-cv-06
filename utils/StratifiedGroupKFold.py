@@ -12,26 +12,31 @@ from sklearn.model_selection import StratifiedGroupKFold
 def update_ids(data):
     new_dict = dict()
 
-    keys = data.keys()
-    for key in keys:
+    for key in ['info', 'licenses', 'images', 'categories', 'annotations']:
         if key in ['images', 'annotations']:
             new_dict[key] = []
         else:
             new_dict[key] = data[key]
 
     images = deepcopy(data['images'])
+    imgs = sorted(images, key=lambda x : x['id'])
     annotations = deepcopy(data['annotations'])
+    anns = sorted(annotations, key=lambda x : x['image_id'])
+    
+    images_ids = np.unique([img['id'] for img in imgs])
+    anns = [ann for ann in anns if ann['image_id'] in images_ids]
 
     id2id = dict()
 
-    for img_idx in range(len(images)):
-        id2id[images[img_idx]['id']] = images[img_idx]['id']
-        images[img_idx]['id'] = img_idx
-        new_dict['images'].append(images[img_idx])
+    for idx, img in enumerate(imgs):
+        id2id[img['id']] = idx
+        img['id'] = idx
+        new_dict['images'].append(img)
     
-    for ann_idx in range(len(annotations)):
-        annotations[ann_idx]['image_id'] = id2id[annotations[ann_idx]['image_id']]
-        new_dict['annotations'].append(annotations[ann_idx])
+    for idx, ann in enumerate(anns):
+        ann['image_id'] = id2id[ann['image_id']]
+        ann['id'] = idx
+        new_dict['annotations'].append(ann)
 
     return new_dict
 
@@ -83,8 +88,8 @@ def main(args):
                     train_dict[key] = train_json[key]
                     val_dict[key] = train_json[key]
             
-            train_idx = list(set(groups[train_idx]))
-            val_idx = list(set(groups[val_idx]))
+            train_idx = np.unique(groups[train_idx])
+            val_idx = np.unique(groups[val_idx])
 
             train_idx.sort()
             val_idx.sort()
@@ -92,12 +97,12 @@ def main(args):
             train_dict['images'] = np.array(images)[train_idx].tolist()
             val_dict['images'] = np.array(images)[val_idx].tolist()
             
-            for annotation in annotations:
-                img_id = annotation['image_id']
-                if img_id in train_idx:
-                    train_dict['annotations'].append(annotation)
-                else:
-                    val_dict['annotations'].append(annotation)
+            train_dict['annotations'] = ann_df[
+                ann_df['image_id'].isin(train_idx)
+            ].to_dict('records')
+            val_dict['annotations'] = ann_df[
+                ann_df['image_id'].isin(val_idx)
+            ].to_dict('records')
             
             train_dict = update_ids(train_dict)
             val_dict = update_ids(val_dict)
