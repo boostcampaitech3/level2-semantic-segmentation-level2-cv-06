@@ -1,0 +1,53 @@
+seed: 21
+epoch: 40
+batch_size: 8
+learning_rate: 0.0000002
+num_classes: 11
+width: 512
+height: 512
+loss: 
+  name: OhemCE
+  params:
+    n_classes: 11
+optimizer:
+  name: AdamW
+  params:
+    lr: 0.0000002
+    weight_decay: 0.000001
+model: 
+  name: HRNetV2_W64_OCR
+  config_path: config.yaml
+scheduler: 
+  name: CustomCosineAnnelingWarmupStarts
+  params:
+    T_0: 10
+    T_mult: 2
+    eta_max: 0.0002
+    T_up: 5
+    gamma: 0.5
+data:
+  data_dir: /opt/ml/input/data
+train:
+  train_data: train.json
+  train_dataloader:
+    batch_size: 8
+    shuffle: true
+    num_workers: 4
+    pin_memory: false
+val:
+  val_data: val.json
+  val_dataloader:
+    batch_size: 8
+    shuffle: false
+    num_workers: 4
+    pin_memory: false
+test:
+  test_data: test.json
+  test_dataloader: 
+    batch_size: 8
+    shuffle: false
+    num_workers: 4
+    pin_memory: false
+augmix:
+  use_augmix: true
+  augmix_data: classdict.pickle
