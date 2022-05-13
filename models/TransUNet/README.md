@@ -58,3 +58,4 @@ $ python inference.py \
 
 ## Reference
 - [TransUNet](https://github.com/Beckschen/TransUNet)
+- [CustomCosineAnnealingWarmUpRestarts](https://gaussian37.github.io/dl-pytorch-lr_scheduler/)
