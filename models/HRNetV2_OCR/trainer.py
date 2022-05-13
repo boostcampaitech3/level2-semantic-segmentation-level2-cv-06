@@ -46,7 +46,7 @@ def train(args, model, model_config, train_loader, val_loader):
     gc.collect()
     torch.cuda.empty_cache()
 
-    wandb.init(project="project", entity="entity", name=args.name)
+    wandb.init(project="Ho", entity="omakase", name=args.name)
     wandb.run.name = (args.name)
     wandb.config = {
         "learning_rate": args.learning_rate,
@@ -63,6 +63,7 @@ def train(args, model, model_config, train_loader, val_loader):
     scheduler = get_scheduler(args.scheduler, optimizer)
 
     best_mIoU = 0.0
+    avrg_loss = 9999.0
     for epoch in range(1, args.epoch+1):
         model.train()
         train_loss, train_miou_score, train_accuracy = 0, 0, 0
@@ -173,7 +174,7 @@ def train(args, model, model_config, train_loader, val_loader):
             print(f"IoU by class : {IoU_by_classes}")
             continue
 
-        best_mIoU = validation(args, model, val_loader, criterion, best_mIoU)
+        best_mIoU, avrg_loss = validation(args, model, val_loader, criterion, best_mIoU, avrg_loss)
 
         
 def validation(args, model, val_loader, criterion, best_mIoU):
@@ -290,4 +291,4 @@ def validation(args, model, val_loader, criterion, best_mIoU):
             f"Validation #{epoch}  Average Loss: {round(avrg_loss, 4)}, Accuracy : {round(acc, 4)}, mIoU: {round(mIoU, 4)}"
         )
         print(f"IoU by class : {IoU_by_classes}")
-    return best_mIoU
+    return best_mIoU, avrg_loss
