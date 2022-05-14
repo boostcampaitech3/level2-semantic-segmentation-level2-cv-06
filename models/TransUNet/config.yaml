@@ -1,0 +1,57 @@
+seed: 21
+epoch: 40
+batch_size: 8
+learning_rate: 0.0000002
+num_classes: 11
+image_size: 512
+width: 512
+height: 512
+loss: 
+  name: Dice
+  params:
+    n_classes: 11
+optimizer:
+  name: AdamW
+  params:
+    lr: 0.0000002
+    weight_decay: 0.000001
+model: 
+  name: R50-ViT-B_16
+  config_path: 
+  pretrained_path: /opt/ml/TransUNet/networks/R50+ViT-B_16.npz
+scheduler: 
+  name: CustomCosineAnnelingWarmupStarts
+  params:
+    T_0: 1600
+    T_mult: 2
+    eta_max: 0.0002
+    T_up: 800
+    gamma: 0.5
+data:
+  data_dir: /opt/ml/input/data
+train:
+  train_data: train_paper.json
+  # train_data: debug.json
+  train_dataloader:
+    batch_size: 8
+    shuffle: true
+    num_workers: 4
+    pin_memory: false
+val:
+  val_data: paper/val_paper_1.json
+  # val_data: debug.json
+  val_dataloader:
+    batch_size: 8
+    shuffle: false
+    num_workers: 4
+    pin_memory: false
+test:
+  test_data: test.json
+  test_dataloader: 
+    batch_size: 8
+    shuffle: false
+    num_workers: 4
+    pin_memory: false
+augmix:
+  use_augmix: true
+  augmix_data: classdict.pickle
