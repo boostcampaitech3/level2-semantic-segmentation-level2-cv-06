@@ -3,6 +3,7 @@ import os.path as osp
 import gc
 import yaml
 import wandb
+import copy
 
 from tqdm import tqdm
 from easydict import EasyDict as edict
@@ -20,8 +21,6 @@ from utils import (
     add_hist,
     label_accuracy_score
 )
-
-best_mIoU = 0.0
 
 CLASSES = {
     0: "Backgroud",
@@ -46,7 +45,7 @@ def train(args, model, model_config, train_loader, val_loader):
     gc.collect()
     torch.cuda.empty_cache()
 
-    wandb.init(project="Ho", entity="omakase", name=args.name)
+    wandb.init(project="project", entity="entity", name=args.name)
     wandb.run.name = (args.name)
     wandb.config = {
         "learning_rate": args.learning_rate,
@@ -173,17 +172,19 @@ def train(args, model, model_config, train_loader, val_loader):
             )
             print(f"IoU by class : {IoU_by_classes}")
             continue
-
-        best_mIoU, avrg_loss = validation(args, model, val_loader, criterion, best_mIoU, avrg_loss)
+        
+        configs = copy.deepcopy(args)
+        configs.epoch = epoch
+        best_mIoU, avrg_loss = validation(configs, model, val_loader, criterion, best_mIoU, avrg_loss)
 
         
-def validation(args, model, val_loader, criterion, best_mIoU):
+def validation(args, model, val_loader, criterion, best_mIoU, avrg_loss):
     epoch = args.epoch
     num_classes = args.num_classes
     device = args.device
     save_dir = args.save_dir
 
-    best_val_loss = 9999.0
+    best_val_loss = avrg_loss
     val_loss, val_miou_score, val_accuracy = 0, 0, 0
 
     val_pbar = tqdm(val_loader, total=len(val_loader), desc=f"Epoch{epoch} : Val")

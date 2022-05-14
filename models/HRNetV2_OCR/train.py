@@ -36,7 +36,7 @@ CLASSES = {
 def get_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--seed', type=int, default=21)
-    parser.add_argument("--epoch", type=int, default=2)
+    parser.add_argument("--epoch", type=int, default=100)
     parser.add_argument("--batch_size", type=int, default=8)
     parser.add_argument("--learning_rate", type=float, default=2e-5)
     parser.add_argument("--fold", type=bool, default=True)
