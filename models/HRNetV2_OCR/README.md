@@ -15,7 +15,9 @@
 ├─ scheduler.py
 ├─ test.py
 ├─ train.py
-└─ utils.py
+├─ trainer.py
+├─ utils.py
+└─ config.yaml
 ```
 - `configs/config.yaml` : HRNetv2 OCR의 모델 config
 - `dataset.py` : Dataset과 Transforms 관련 파일
@@ -24,7 +26,8 @@
 - `optimizer.py` : Optimizer 관련 파일
 - `scheduler.py` : Scheduler 관련 파일
 - `test.py` : Inference시 불러오는 파일로, csv 파일 생성
-- `train.py` : 모델 학습을 위한 파일
+- `train.py` : 모델 학습 config 준비 파일
+- `trainer.py` : 모델 학습을 위한 파일
 - `utils.py` : Metric과 Custom Scheduler 관련 파일
 - `config.yaml` : 모델과 학습 파라미터와 관련 파일
 
