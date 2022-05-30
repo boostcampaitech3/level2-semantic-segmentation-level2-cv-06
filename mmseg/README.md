@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="resources/mmseg-logo.png" width="600"/>
+  <img src="resources_readme/mmseg-logo.png" width="600"/>
   <div>&nbsp;</div>
   <div align="center">
     <b><font size="5">OpenMMLab website</font></b>
@@ -40,7 +40,7 @@ It is a part of the OpenMMLab project.
 
 The master branch works with **PyTorch 1.5+**.
 
-![demo image](resources/seg_demo.gif)
+![demo image](resources_readme/seg_demo.gif)
 
 ### Major features
 
